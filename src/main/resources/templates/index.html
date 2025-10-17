@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>확장자 관리</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+
+        .fixed-extensions {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .checkbox-item:hover {
+            background-color: #f9f9f9;
+            border-color: #dc3545;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 8px;
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            font-size: 14px;
+            user-select: none;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #dc3545;
+            box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.1);
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: #c82333;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+        }
+
+        .btn-primary:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .custom-extensions {
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 16px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .extension-tag {
+            display: inline-flex;
+            align-items: center;
+            background-color: #f0f0f0;
+            border: 1px solid #e0e0e0;
+            border-radius: 16px;
+            padding: 6px 12px;
+            margin: 4px;
+            font-size: 14px;
+            gap: 8px;
+        }
+
+        .extension-tag .remove-btn {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            transition: color 0.2s;
+        }
+
+        .extension-tag .remove-btn:hover {
+            color: #dc3545;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            padding: 40px 20px;
+        }
+
+        .counter {
+            color: #666;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .success-message {
+            color: #28a745;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- 1. 고정 확장자 섹션 -->
+    <div class="section">
+        <div class="section-title">
+            <span>고정 확장자</span>
+        </div>
+        <div class="fixed-extensions" id="fixedExtensions"></div>
+    </div>
+
+    <!-- 2. 커스텀 확장자 추가 섹션 -->
+    <div class="section">
+        <div class="section-title">
+            <span>커스텀 확장자</span>
+        </div>
+        <div class="input-group">
+            <input
+                    type="text"
+                    id="extensionInput"
+                    placeholder="확장자 입력"
+                    maxlength="20"
+            >
+            <button class="btn btn-primary" id="addBtn">추가</button>
+        </div>
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
+    </div>
+
+    <!-- 3. 커스텀 확장자 목록 섹션 -->
+    <div class="section">
+        <div class="section-title">
+            <span>확장자 목록</span>
+        </div>
+        <div class="custom-extensions" id="customExtensions">
+            <div class="empty-message">추가된 확장자가 없습니다</div>
+        </div>
+        <div class="counter">
+            <span id="customCount">0</span> / 200
+        </div>
+    </div>
+</div>
+
+<script>
+    // 상수 정의
+    const FIXED_EXTENSIONS = ['bat', 'cmd', 'com', 'cpl', 'exe', 'scr', 'js'];
+    const MAX_CUSTOM = 200;
+    const MAX_INPUT_LENGTH = 20;
+    const STORAGE_KEY_FIXED = 'fixedExtensionsState';
+    const STORAGE_KEY_CUSTOM = 'customExtensions';
+
+    // DOM 요소
+    const fixedExtensionsContainer = document.getElementById('fixedExtensions');
+    const customExtensionsContainer = document.getElementById('customExtensions');
+    const extensionInput = document.getElementById('extensionInput');
+    const addBtn = document.getElementById('addBtn');
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
+    const customCount = document.getElementById('customCount');
+
+    // 초기화
+    function init() {
+        renderFixedExtensions();
+        renderCustomExtensions();
+        attachEventListeners();
+    }
+
+    // 고정 확장자 렌더링
+    function renderFixedExtensions() {
+        fixedExtensionsContainer.innerHTML = '';
+        const fixedState = loadFixedExtensionsState();
+
+        FIXED_EXTENSIONS.forEach(ext => {
+            const isChecked = fixedState[ext] || false;
+            const label = document.createElement('label');
+            label.className = 'checkbox-item';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = ext;
+            checkbox.checked = isChecked;
+            checkbox.addEventListener('change', handleFixedExtensionChange);
+
+            const labelText = document.createElement('label');
+            labelText.textContent = ext;
+
+            label.appendChild(checkbox);
+            label.appendChild(labelText);
+            fixedExtensionsContainer.appendChild(label);
+        });
+    }
+
+    // 고정 확장자 상태 저장
+    function handleFixedExtensionChange(e) {
+        const ext = e.target.value;
+        const isChecked = e.target.checked;
+        const fixedState = loadFixedExtensionsState();
+        fixedState[ext] = isChecked;
+        saveFixedExtensionsState(fixedState);
+        // DB 저장 호출 (API)
+        saveToDatabase('fixedExtension', { extension: ext, checked: isChecked });
+    }
+
+    // 커스텀 확장자 렌더링
+    function renderCustomExtensions() {
+        const customExtensions = loadCustomExtensions();
+        customExtensionsContainer.innerHTML = '';
+
+        if (customExtensions.length === 0) {
+            customExtensionsContainer.innerHTML = '<div class="empty-message">추가된 확장자가 없습니다</div>';
+        } else {
+            customExtensions.forEach(ext => {
+                const tag = createExtensionTag(ext);
+                customExtensionsContainer.appendChild(tag);
+            });
+        }
+
+        customCount.textContent = customExtensions.length;
+    }
+
+    // 확장자 태그 생성
+    function createExtensionTag(extension) {
+        const tag = document.createElement('div');
+        tag.className = 'extension-tag';
+
+        const text = document.createElement('span');
+        text.textContent = extension;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-btn';
+        removeBtn.innerHTML = '✕';
+        removeBtn.addEventListener('click', () => handleRemoveExtension(extension));
+
+        tag.appendChild(text);
+        tag.appendChild(removeBtn);
+        return tag;
+    }
+
+    // 확장자 추가
+    function handleAddExtension() {
+        const value = extensionInput.value.trim();
+
+        // 유효성 검사
+        if (!value) {
+            showError('확장자를 입력해주세요');
+            return;
+        }
+
+        if (value.length > MAX_INPUT_LENGTH) {
+            showError(`최대 ${MAX_INPUT_LENGTH}자까지 입력 가능합니다`);
+            return;
+        }
+
+        const customExtensions = loadCustomExtensions();
+
+        if (customExtensions.length >= MAX_CUSTOM) {
+            showError(`최대 ${MAX_CUSTOM}개까지만 추가 가능합니다`);
+            return;
+        }
+
+        if (customExtensions.includes(value)) {
+            showError('이미 추가된 확장자입니다');
+            return;
+        }
+
+        // 추가
+        customExtensions.push(value);
+        saveCustomExtensions(customExtensions);
+        renderCustomExtensions();
+        extensionInput.value = '';
+        showSuccess('확장자가 추가되었습니다');
+
+        // DB 저장 호출 (API)
+        saveToDatabase('customExtension', { extension: value, action: 'add' });
+    }
+
+    // 확장자 제거
+    function handleRemoveExtension(extension) {
+        let customExtensions = loadCustomExtensions();
+        customExtensions = customExtensions.filter(ext => ext !== extension);
+        saveCustomExtensions(customExtensions);
+        renderCustomExtensions();
+
+        // DB 저장 호출 (API)
+        saveToDatabase('customExtension', { extension: extension, action: 'remove' });
+    }
+
+    // 이벤트 리스너 등록
+    function attachEventListeners() {
+        addBtn.addEventListener('click', handleAddExtension);
+        extensionInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleAddExtension();
+            }
+        });
+    }
+
+    // 메시지 표시
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+        successMessage.style.display = 'none';
+        setTimeout(() => {
+            errorMessage.style.display = 'none';
+        }, 3000);
+    }
+
+    function showSuccess(message) {
+        successMessage.textContent = message;
+        successMessage.style.display = 'block';
+        errorMessage.style.display = 'none';
+        setTimeout(() => {
+            successMessage.style.display = 'none';
+        }, 3000);
+    }
+
+    // LocalStorage 관리 (실제 환경에서는 DB 사용)
+    function loadFixedExtensionsState() {
+        const stored = localStorage.getItem(STORAGE_KEY_FIXED);
+        return stored ? JSON.parse(stored) : {};
+    }
+
+    function saveFixedExtensionsState(state) {
+        localStorage.setItem(STORAGE_KEY_FIXED, JSON.stringify(state));
+    }
+
+    function loadCustomExtensions() {
+        const stored = localStorage.getItem(STORAGE_KEY_CUSTOM);
+        return stored ? JSON.parse(stored) : [];
+    }
+
+    function saveCustomExtensions(extensions) {
+        localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(extensions));
+    }
+
+    // DB 저장 (API 호출 예시)
+    function saveToDatabase(type, data) {
+        // 실제 환경에서는 여기서 API 호출
+        // fetch('/api/extensions', {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify({ type, ...data })
+        // })
+        console.log('DB 저장:', type, data);
+    }
+
+    // 페이지 로드 시 초기화
+    window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
