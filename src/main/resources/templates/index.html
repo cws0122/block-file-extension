@@ -350,8 +350,8 @@
     // 고정 확장자 체크 처리
     function handleFixedExtensionCheck(id) {
         $.ajax({
-            type: 'POST',
-            url: '/api/v1/extension/check?id=' + id,
+            type: 'PATCH',
+            url: '/api/v1/extension/' + id,
             dataType: 'json',
             success: function(response) {
                 if (response.success) {

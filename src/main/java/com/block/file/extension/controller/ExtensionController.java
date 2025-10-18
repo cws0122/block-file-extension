@@ -60,8 +60,8 @@ public class ExtensionController {
         }
     }
 
-    @PostMapping("/check")
-    public ResponseEntity<Map<String, Object>> confirmCheck(@RequestParam(value = "id") Long id) {
+    @PatchMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> confirmCheck(@PathVariable Long id) {
         log.debug("confirm Check extension: {}", id);
         try {
             CreateExtensionResponse data = extensionService.confirmCheckExtension(id);
