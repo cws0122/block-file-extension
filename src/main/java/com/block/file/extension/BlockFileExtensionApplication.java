@@ -1,4 +1,4 @@
-package com.block.file.extention;
+package com.block.file.extension;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

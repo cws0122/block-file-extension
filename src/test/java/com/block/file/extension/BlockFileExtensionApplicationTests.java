@@ -1,4 +1,4 @@
-package com.block.file.extention;
+package com.block.file.extension;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
